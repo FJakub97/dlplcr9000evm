@@ -122,7 +122,7 @@ class Response:
     data: list[int] = field(default_factory=list)
 
     @classmethod
-    def from_bytes(cls, buffer: bytes) -> Request:
+    def from_bytes(cls, buffer: bytes) -> Response:
         offset = 0
         values = []
         for current_field in fields(cls):

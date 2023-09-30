@@ -113,7 +113,7 @@ class DLPLCR9000EVM:
 
         return number_of_bytes_written
 
-    def write_operation(self, request: Request) -> list[int] | list[Response]:
+    def write_operation(self, request: Request) -> list[int] | Response:
         output = []
 
         if request.command in [Command.PATTERN_BMP_LOAD_PRIMARY, Command.PATTERN_BMP_LOAD_SECONDARY]:
@@ -129,7 +129,7 @@ class DLPLCR9000EVM:
                 self.__write_operation(
                     b"\x00"
                     + request_as_bytes[
-                        (packet_number * self.USB_MAXIMUM_PACKET_SIZE) : (
+                        (packet_number * self.USB_MAXIMUM_PACKET_SIZE): (
                             (packet_number + 1) * self.USB_MAXIMUM_PACKET_SIZE
                         )
                     ],
@@ -299,7 +299,7 @@ class DLPLCR9000EVM:
 
         for message_number in range(number_of_messages):
             message_data = image_data[
-                (message_number * maximum_message_image_data_length) : (
+                (message_number * maximum_message_image_data_length): (
                     (message_number + 1) * maximum_message_image_data_length
                 )
             ]
@@ -311,6 +311,64 @@ class DLPLCR9000EVM:
             number_of_bytes_written += sum(response)
 
         return number_of_bytes_written
+
+    @error_handle
+    def set_trigger_output_1(self, invert: bool, raising_edge_delay: int, falling_edge_delay: int) -> Response:
+        """
+        Sets the polarity, raising edge delay, and falling edge delay of the TRIG_OUT_1 signal. The delays are compared
+        to when the pattern is displayed on the DMD. Before executing this command, stop the current pattern sequence.
+
+        Args:
+            invert (bool): Specifies whether the trigger output should be inverted or non-inverted.
+                False means non-inverted trigger output. True means inverted trigger output.
+            raising_edge_delay (int): Trigger output raising edge delay in microseconds.
+            falling_edge_delay (int): Trigger output falling edge delay in microseconds.
+
+        Returns:
+            Response: Response message from the device.
+        """
+        request = self.prepare_write_message(
+            Command.TRIGGER_OUTPUT_1,
+            [
+                invert & 0x01,
+                raising_edge_delay & 0xFF,
+                (raising_edge_delay >> 8) & 0xFF,
+                falling_edge_delay & 0xFF,
+                (falling_edge_delay >> 8) & 0xFF,
+            ],
+            True,
+        )
+        response = self.write_operation(request)
+        return response
+
+    @error_handle
+    def set_trigger_output_2(self, invert: bool, raising_edge_delay: int, falling_edge_delay: int) -> Response:
+        """
+        Sets the polarity, raising edge delay, and falling edge delay of the TRIG_OUT_2 signal. The delays are compared
+        to when the pattern is displayed on the DMD. Before executing this command, stop the current pattern sequence.
+
+        Args:
+            invert (bool): Specifies whether the trigger output should be inverted or non-inverted.
+                False means non-inverted trigger output. True means inverted trigger output.
+            raising_edge_delay (int): Trigger output raising edge delay in microseconds.
+            falling_edge_delay (int): Trigger output falling edge delay in microseconds.
+
+        Returns:
+            Response: Response message from the device.
+        """
+        request = self.prepare_write_message(
+            Command.TRIGGER_OUTPUT_2,
+            [
+                invert & 0x01,
+                raising_edge_delay & 0xFF,
+                (raising_edge_delay >> 8) & 0xFF,
+                falling_edge_delay & 0xFF,
+                (falling_edge_delay >> 8) & 0xFF,
+            ],
+            True,
+        )
+        response = self.write_operation(request)
+        return response
 
 
 if __name__ == "__main__":
